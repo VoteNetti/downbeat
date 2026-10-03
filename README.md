@@ -164,15 +164,17 @@ Not in the Brewfile:
 
 ## Secret scanning
 
-`install.sh` installs [pre-commit](https://pre-commit.com) hooks in this repo, so every commit is scanned with [gitleaks](https://github.com/gitleaks/gitleaks) (and my shell scripts are linted with [shellcheck](https://www.shellcheck.net)) before it's created. That matters here because dotfiles are symlinked into the repo: anything a tool appends to `~/.zshrc` lands in a tracked file. A GitHub Actions workflow also scans on push and pull requests.
+`install.sh` installs [pre-commit](https://pre-commit.com) hooks in this repo, so every commit is scanned with [gitleaks](https://github.com/gitleaks/gitleaks) (and my shell scripts are linted with [shellcheck](https://www.shellcheck.net)) before it's created. That matters here because dotfiles are symlinked into the repo: anything a tool appends to `~/.zshrc` lands in a tracked file. CI runs the same hooks, plus a gitleaks-action scan, on every push and pull request.
 
 ## Testing
 
 ```bash
 bash -n install.sh      # Syntax check
 pre-commit run --all-files  # gitleaks + shellcheck
-cd test/ && ./test-in-docker.sh
+cd test/ && ./test-in-docker.sh   # optional: poke around in a clean Ubuntu container
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) is the real test. On every pull request and push to `main` it runs `pre-commit run --all-files`, then runs `bootstrap.sh` from that commit on clean `ubuntu-latest` and `macos-latest` runners, runs `install.sh` a second time to check it's idempotent, and checks the result. There's no 1Password on a runner, so signing is expected to be off there. The Docker setup in `test/` stays for trying things locally.
 
 See [CLAUDE.md](CLAUDE.md) for the full testing instructions.
 

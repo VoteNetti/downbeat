@@ -31,7 +31,8 @@ VoteNetti's personal workstation setup, published as a public repo. The defaults
 ## Testing Approach
 
 - Syntax validation with `bash -n`
-- Test in clean VMs/containers for both macOS and Ubuntu
+- CI (`.github/workflows/ci.yml`) is the main test: `pre-commit run --all-files`, then `bootstrap.sh` (with `DOWNBEAT_REPO` set to the checkout) plus a second `install.sh` run on `ubuntu-latest` and `macos-latest`, using `DOWNBEAT_GITHUB_USER` / `DOWNBEAT_GIT_EMAIL` and expecting signing off
+- Docker (below) stays for local experiments on clean Ubuntu
 - Idempotent script design (safe to run multiple times)
 
 ### Docker Testing
@@ -119,5 +120,5 @@ Claude Code config is deployed to user scope (`~/.claude/`) by `install.sh`.
 
 - Pre-commit hook via gitleaks, managed by the pre-commit framework (`.pre-commit-config.yaml`); `install.sh` installs it, or run `pre-commit install` on its own. shellcheck runs from the same config
 - Never run `pre-commit install` in a checkout without that config: every commit fails
-- GitHub Actions workflow (`.github/workflows/secret-scan.yml`) scans on push to main and PRs
+- CI (`.github/workflows/ci.yml`) runs `pre-commit run --all-files` and a `gitleaks-action` scan of the pushed commits (the pre-commit gitleaks hook only scans staged changes)
 - Configuration in `.gitleaks.toml`

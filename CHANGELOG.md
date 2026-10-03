@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - Secret scanning and shell linting run through the [pre-commit](https://pre-commit.com) framework: `.pre-commit-config.yaml` has gitleaks (with `.gitleaks.toml`) and shellcheck. `install.sh` runs `pre-commit install` and replaces the old hand-written hook
+- CI is one workflow, `ci.yml`: pre-commit plus a gitleaks-action scan of the pushed commits, and a clean-runner install test on `ubuntu-latest` and `macos-latest` (`bootstrap.sh` from the PR's commit, then a second `install.sh` run for idempotence). The Docker setup in `test/` stays for local testing
 
 ### Removed
 - `scripts/setup-hooks.sh`
+- `.github/workflows/secret-scan.yml` (replaced by `ci.yml`)
 
 ## [2.0.0] - 2026-10-03
 
