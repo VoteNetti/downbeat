@@ -206,7 +206,7 @@ change_default_shell() {
     chsh -s "$zsh_path" && echo "✓ Default shell changed to zsh (restart your terminal)"
 }
 
-echo "🚀 downbeat ($(uname -s))"
+echo "🥁 downbeat ($(uname -s))"
 
 step "Linux prerequisites" install_linux_prereqs
 step "Homebrew" install_homebrew
