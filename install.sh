@@ -177,14 +177,15 @@ merge_claude_settings() {
     echo "✓ Claude settings merged"
 }
 
-# gitleaks pre-commit hook for this repo: dotfiles are symlinked here, so anything a tool
-# appends to ~/.zshrc (API keys included) would otherwise be one commit away from GitHub
+# pre-commit hooks for this repo (gitleaks + shellcheck): dotfiles are symlinked here, so
+# anything a tool appends to ~/.zshrc (API keys included) would otherwise be one commit
+# away from GitHub. -f replaces the old hand-written hook.
 install_repo_hooks() {
     if [ ! -d "$REPO_DIR/.git" ]; then
         echo "⏭️  Not a git checkout: skipping repo hooks"
         return 0
     fi
-    bash "$REPO_DIR/scripts/setup-hooks.sh"
+    (cd "$REPO_DIR" && pre-commit install -f --install-hooks)
 }
 
 change_default_shell() {
@@ -205,7 +206,7 @@ change_default_shell() {
     chsh -s "$zsh_path" && echo "✓ Default shell changed to zsh (restart your terminal)"
 }
 
-echo "🚀 downbeat ($(uname -s))"
+echo "🥁 downbeat ($(uname -s))"
 
 step "Linux prerequisites" install_linux_prereqs
 step "Homebrew" install_homebrew
@@ -218,7 +219,7 @@ step "Brewfile packages" brew bundle --file="$REPO_DIR/Brewfile"
 step "Oh My Zsh" install_oh_my_zsh
 step "Dotfiles" link_dotfiles
 step "Git identity and signing" configure_git_identity
-step "Repo hooks (gitleaks)" install_repo_hooks
+step "Repo hooks (pre-commit)" install_repo_hooks
 step "Claude settings" merge_claude_settings
 step "Node.js (nvm)" bash "$REPO_DIR/install/node.sh"
 step "Default shell" change_default_shell

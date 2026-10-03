@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Secret scanning and shell linting run through the [pre-commit](https://pre-commit.com) framework: `.pre-commit-config.yaml` has gitleaks (with `.gitleaks.toml`) and shellcheck. `install.sh` runs `pre-commit install` and replaces the old hand-written hook
+
+### Removed
+- `scripts/setup-hooks.sh`
+
 ## [2.0.0] - 2026-10-03
 
 Renamed to **downbeat** and rebuilt around Homebrew on every platform and symlinked dotfiles. Breaking: the install layout, flags and config locations have changed.

@@ -18,13 +18,14 @@ VoteNetti's personal workstation setup, published as a public repo. The defaults
 - Docker comes from the `docker-desktop` cask only; never add brew's `docker`/`docker-completion` formulae (they conflict with Desktop's bundled CLI). VS Code settings are not managed (Settings Sync).
 
 - The clone location is permanent: dotfiles symlink into it. `install.sh` uses its own directory (`REPO_DIR`), so it works from any clone.
-- `install.sh` installs the gitleaks pre-commit hook into this repo (`scripts/setup-hooks.sh`) and ends with a `gh auth login` reminder if GitHub CLI isn't logged in.
+- `install.sh` runs `pre-commit install` for this repo (gitleaks + shellcheck, configured in `.pre-commit-config.yaml`) and ends with a `gh auth login` reminder if GitHub CLI isn't logged in.
 
 ## Development Commands
 
 - Syntax check: `bash -n install.sh install/node.sh` and `zsh -n home/.zshrc home/.zprofile`
 - List Brewfile entries: `brew bundle list --file=Brewfile --all`
 - Test the settings merge without writing: `jq -s -f claude/merge-settings.jq ~/.claude/settings.json claude/settings.base.json`
+- Lint and scan everything: `pre-commit run --all-files`
 - Run installation: `./install.sh`
 
 ## Testing Approach
@@ -116,6 +117,7 @@ Claude Code config is deployed to user scope (`~/.claude/`) by `install.sh`.
 
 ## Secret Scanning
 
-- Pre-commit hook via gitleaks, installed by `install.sh` (or `./scripts/setup-hooks.sh` on its own)
+- Pre-commit hook via gitleaks, managed by the pre-commit framework (`.pre-commit-config.yaml`); `install.sh` installs it, or run `pre-commit install` on its own. shellcheck runs from the same config
+- Never run `pre-commit install` in a checkout without that config: every commit fails
 - GitHub Actions workflow (`.github/workflows/secret-scan.yml`) scans on push to main and PRs
 - Configuration in `.gitleaks.toml`
