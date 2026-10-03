@@ -77,11 +77,13 @@ This project uses semantic versioning with git tags:
 - MINOR: new features (new tool, new config, new OS support)
 - PATCH: fixes (bug fixes, doc updates, config tweaks)
 
-Steps:
-1. Update `CHANGELOG.md` with the new version's changes
-2. Commit: `git commit -am "Prepare release vX.Y.Z"`
-3. Tag: `git tag -a vX.Y.Z -m "vX.Y.Z: Brief description"`
+Steps (`main` is protected, so the changelog goes in through a PR):
+1. In the PR that completes the release (or a dedicated `Prepare release vX.Y.Z` PR), change `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - date`
+2. Merge the PR, then `git switch main && git pull`
+3. Tag `main` with a signed annotated tag: `git tag -a vX.Y.Z -m "vX.Y.Z: Brief description"` (the branch-protection hook allows tagging)
 4. Push: `git push origin vX.Y.Z`
+
+Versions are milestones: `bootstrap.sh` always installs from `main`, not from a tag.
 
 A GitHub Action (`.github/workflows/release.yml`) automatically creates a GitHub Release when a version tag is pushed.
 
