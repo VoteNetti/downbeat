@@ -164,7 +164,7 @@ Not in the Brewfile:
 
 ## Secret scanning
 
-`install.sh` installs [pre-commit](https://pre-commit.com) hooks in this repo, so every commit is scanned with [gitleaks](https://github.com/gitleaks/gitleaks) (and my shell scripts are linted with [shellcheck](https://www.shellcheck.net)) before it's created. That matters here because dotfiles are symlinked into the repo: anything a tool appends to `~/.zshrc` lands in a tracked file. CI runs the same hooks, plus a full-history gitleaks scan, on every push and pull request.
+`install.sh` installs [pre-commit](https://pre-commit.com) hooks in this repo, so every commit is scanned with [gitleaks](https://github.com/gitleaks/gitleaks) (and my shell scripts are linted with [shellcheck](https://www.shellcheck.net)) before it's created. That matters here because dotfiles are symlinked into the repo: anything a tool appends to `~/.zshrc` lands in a tracked file. CI runs the same hooks, plus a gitleaks-action scan, on every push and pull request.
 
 ## Testing
 

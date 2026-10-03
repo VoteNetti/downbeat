@@ -120,5 +120,5 @@ Claude Code config is deployed to user scope (`~/.claude/`) by `install.sh`.
 
 - Pre-commit hook via gitleaks, managed by the pre-commit framework (`.pre-commit-config.yaml`); `install.sh` installs it, or run `pre-commit install` on its own. shellcheck runs from the same config
 - Never run `pre-commit install` in a checkout without that config: every commit fails
-- CI (`.github/workflows/ci.yml`) runs `pre-commit run --all-files` and a full-history `gitleaks detect` (the pre-commit gitleaks hook only scans staged changes)
+- CI (`.github/workflows/ci.yml`) runs `pre-commit run --all-files` and a `gitleaks-action` scan of the pushed commits (the pre-commit gitleaks hook only scans staged changes)
 - Configuration in `.gitleaks.toml`
