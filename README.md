@@ -84,7 +84,7 @@ cd ~/.downbeat && git pull && ./install.sh
 4. Installs [Oh My Zsh](https://ohmyz.sh)
 5. Symlinks every file in `home/` to the same path under `$HOME`
 6. Sets up git identity and signing: asks for a GitHub username and email (first run only), looks up the public signing key on GitHub, and signs through 1Password (or turns signing off)
-7. Installs the gitleaks pre-commit hook in this repo
+7. Installs the [pre-commit](https://pre-commit.com) hooks in this repo (gitleaks and shellcheck)
 8. Merges my Claude Code settings into `~/.claude/settings.json`
 9. Installs nvm, Node.js LTS and global npm tools (`install/node.sh`)
 10. Sets zsh as the default shell
@@ -96,6 +96,7 @@ cd ~/.downbeat && git pull && ./install.sh
 downbeat/
   bootstrap.sh          # New-machine one-liner: get git, clone, run install.sh
   install.sh            # Entry point (safe to re-run)
+  .pre-commit-config.yaml  # gitleaks + shellcheck hooks
   Brewfile              # All packages; macOS-only casks wrapped in `if OS.mac?`
   home/                 # Mirrors $HOME; each file is symlinked into place
     .zshrc
@@ -109,7 +110,6 @@ downbeat/
     settings.base.json  # Hooks + permissions merged into ~/.claude/settings.json
     merge-settings.jq   # The merge logic
   install/node.sh       # nvm + Node LTS + global npm tools
-  scripts/setup-hooks.sh  # gitleaks pre-commit hook (run by install.sh)
   test/                 # Docker-based Ubuntu testing
 ```
 
@@ -164,12 +164,13 @@ Not in the Brewfile:
 
 ## Secret scanning
 
-`install.sh` installs a [gitleaks](https://github.com/gitleaks/gitleaks) pre-commit hook in this repo, so every commit is scanned before it's created. That matters here because dotfiles are symlinked into the repo: anything a tool appends to `~/.zshrc` lands in a tracked file. A GitHub Actions workflow also scans on push and pull requests.
+`install.sh` installs [pre-commit](https://pre-commit.com) hooks in this repo, so every commit is scanned with [gitleaks](https://github.com/gitleaks/gitleaks) (and my shell scripts are linted with [shellcheck](https://www.shellcheck.net)) before it's created. That matters here because dotfiles are symlinked into the repo: anything a tool appends to `~/.zshrc` lands in a tracked file. A GitHub Actions workflow also scans on push and pull requests.
 
 ## Testing
 
 ```bash
 bash -n install.sh      # Syntax check
+pre-commit run --all-files  # gitleaks + shellcheck
 cd test/ && ./test-in-docker.sh
 ```
 
