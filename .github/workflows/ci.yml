@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: read # gitleaks-action lists the PR's commits
+
 jobs:
   lint:
     name: pre-commit
