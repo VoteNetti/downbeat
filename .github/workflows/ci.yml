@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install pre-commit
+        run: pipx install pre-commit
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+      # The pre-commit gitleaks hook only scans staged changes, so scan the full history here
+      - name: Install gitleaks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download --repo gitleaks/gitleaks \
+            --pattern 'gitleaks_*_linux_x64.tar.gz' \
+            --output /tmp/gitleaks.tar.gz
+          tar -xz -C /usr/local/bin -f /tmp/gitleaks.tar.gz gitleaks
+      - name: Scan history for secrets
+        run: gitleaks detect --source . --config .gitleaks.toml --redact
+
+  install:
+    name: install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    env:
+      DOWNBEAT_GITHUB_USER: VoteNetti
+      DOWNBEAT_GIT_EMAIL: ci@example.com
+      HOMEBREW_NO_ANALYTICS: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Bootstrap from this commit
+        # bootstrap.sh clones DOWNBEAT_REPO, so point it at the checkout instead of GitHub
+        env:
+          DOWNBEAT_REPO: ${{ github.workspace }}
+        run: bash bootstrap.sh
+      - name: Run install.sh again (idempotence)
+        run: ~/.downbeat/install.sh
+      - name: Check the result
+        run: |
+          set -euo pipefail
+          # No 1Password on runners, so signing must be off
+          test "$(git config --file ~/.gitconfig.local commit.gpgsign)" = "false"
+          test "$(git config --file ~/.gitconfig.local user.email)" = "$DOWNBEAT_GIT_EMAIL"
+          # Dotfiles are symlinks into the clone
+          test "$(readlink ~/.zshrc)" = "$HOME/.downbeat/home/.zshrc"
+          test -x ~/.claude/hooks/branch-protection.sh
+          jq -e '.hooks.PreToolUse | length > 0' ~/.claude/settings.json
+          test -f ~/.downbeat/.git/hooks/pre-commit
