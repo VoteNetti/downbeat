@@ -226,8 +226,8 @@ step "Default shell" change_default_shell
 
 echo
 if ! gh auth status &> /dev/null; then
-    echo "🔑 GitHub CLI is not logged in. To push changes to downbeat, run:"
-    echo "     gh auth login && gh auth setup-git"
+    echo "🔑 GitHub CLI is not logged in. For pull requests and issues from the terminal, run:"
+    echo "     gh auth login"
     echo
 fi
 if [ ${#FAILURES[@]} -gt 0 ]; then
