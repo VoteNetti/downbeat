@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] - 2.0.0
+## [2.0.0] - 2026-10-03
 
 Renamed to **downbeat** and rebuilt around Homebrew on every platform and symlinked dotfiles. Breaking: the install layout, flags and config locations have changed.
 
@@ -32,6 +32,7 @@ Renamed to **downbeat** and rebuilt around Homebrew on every platform and symlin
 - AWS CDK is installed with npm under nvm instead of brew
 - `scripts/setup-hooks.sh` expects gitleaks from the Brewfile
 - Docker test helper uses `docker compose` instead of `docker-compose`
+- GitHub Actions workflows use Node 24 action versions
 
 ### Removed
 - `--update` flag (re-run `./install.sh` instead)
