@@ -1,0 +1,11 @@
+# gitleaks configuration for downbeat
+title = "downbeat gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''\.gitleaks\.toml''',
+]

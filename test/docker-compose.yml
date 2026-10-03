@@ -1,0 +1,13 @@
+services:
+  ubuntu-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: downbeat-test
+    volumes:
+      # Mount the project directory for live updates
+      - ..:/home/testuser/downbeat
+    stdin_open: true
+    tty: true
+    environment:
+      - TERM=xterm-256color
