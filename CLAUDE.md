@@ -32,7 +32,7 @@ VoteNetti's personal workstation setup, published as a public repo. The defaults
 ## Testing Approach
 
 - Syntax validation with `bash -n`
-- CI (`.github/workflows/ci.yml`) is the main test: `pre-commit run --all-files`, then `bootstrap.sh` (with `DOWNBEAT_REPO` set to the checkout) plus a second `install.sh` run on `ubuntu-latest` and `macos-latest`, using `DOWNBEAT_GITHUB_USER` / `DOWNBEAT_GIT_EMAIL` and expecting signing off
+- CI (`.github/workflows/ci.yml`) is the main test: `pre-commit run --all-files`, then `bootstrap.sh` (with `DOWNBEAT_REPO` set to the checkout) plus a second `install.sh` run on `ubuntu-latest` and `macos-latest`. The install job runs only when a file that affects it changes (the `install` filter in the `changes` job; keep it in sync when adding top-level paths the install uses) and always on pushes to `main`. It uses using `DOWNBEAT_GITHUB_USER` / `DOWNBEAT_GIT_EMAIL` and expecting signing off
 - Docker (below) stays for local experiments on clean Ubuntu
 - Idempotent script design (safe to run multiple times)
 

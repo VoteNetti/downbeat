@@ -169,7 +169,7 @@ pre-commit run --all-files  # gitleaks + shellcheck
 cd test/ && ./test-in-docker.sh   # optional: poke around in a clean Ubuntu container
 ```
 
-GitHub Actions (`.github/workflows/ci.yml`) is the real test. On every pull request and push to `main` it runs `pre-commit run --all-files`, then runs `bootstrap.sh` from that commit on clean `ubuntu-latest` and `macos-latest` runners, runs `install.sh` a second time to check it's idempotent, and checks the result. There's no 1Password on a runner, so signing is expected to be off there. The Docker setup in `test/` stays for trying things locally.
+GitHub Actions (`.github/workflows/ci.yml`) is the real test. On every pull request and push to `main` it runs `pre-commit run --all-files`. When a file that affects the install changes (or on any push to `main`), it also runs `bootstrap.sh` from that commit on clean `ubuntu-latest` and `macos-latest` runners, runs `install.sh` a second time to check it's idempotent, and checks the result. There's no 1Password on a runner, so signing is expected to be off there. The Docker setup in `test/` stays for trying things locally.
 
 See [CLAUDE.md](CLAUDE.md) for the full testing instructions.
 
