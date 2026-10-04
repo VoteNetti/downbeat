@@ -61,12 +61,7 @@ DOWNBEAT_GITHUB_USER=VoteNetti DOWNBEAT_GIT_EMAIL=me@johnnetti.com \
 
 Dotfiles are symlinked into `~/.downbeat`, so the clone stays there. To use a different location, set `DOWNBEAT_DIR` before running the one-liner and leave it there too.
 
-To push changes back (the clone uses HTTPS), log in once:
-
-```bash
-gh auth login        # gh is installed by the Brewfile
-gh auth setup-git    # lets git push over HTTPS with your gh login
-```
+The clone uses HTTPS so it works before any keys exist. `home/.gitconfig` rewrites GitHub pushes to SSH, so pushing needs your SSH key on GitHub and nothing else. `gh auth login` is only for `gh` itself (pull requests, issues).
 
 ## Updating
 

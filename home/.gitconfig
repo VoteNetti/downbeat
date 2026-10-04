@@ -14,5 +14,8 @@
 	autoSetupRemote = true
 [init]
 	defaultBranch = main
+# bootstrap clones over HTTPS (works before any keys exist); pushes go over SSH
+[url "git@github.com:"]
+	pushInsteadOf = https://github.com/
 [include]
 	path = ~/.gitconfig.local
