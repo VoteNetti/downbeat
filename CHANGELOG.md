@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - Secret scanning and shell linting run through the [pre-commit](https://pre-commit.com) framework: `.pre-commit-config.yaml` has gitleaks (with `.gitleaks.toml`) and shellcheck. `install.sh` runs `pre-commit install` and replaces the old hand-written hook
 - CI is one workflow, `ci.yml`: pre-commit plus a gitleaks-action scan of the pushed commits, and a clean-runner install test on `ubuntu-latest` and `macos-latest` (`bootstrap.sh` from the PR's commit, then a second `install.sh` run for idempotence). The Docker setup in `test/` stays for local testing
+- CI runs the install test only when `install.sh`, `bootstrap.sh`, `Brewfile`, `install/`, `home/`, `claude/` or `ci.yml` change (pushes to `main` always run it). The pre-commit job still runs on everything
 
 ### Fixed
 - Pushing no longer prompts for a username and password after an HTTPS bootstrap clone: `home/.gitconfig` rewrites GitHub pushes to SSH (`pushInsteadOf`), so clones stay HTTPS and pushes use your SSH key. `gh auth login` is no longer needed to push

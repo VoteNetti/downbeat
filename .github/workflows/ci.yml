@@ -28,8 +28,34 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
 
+  # Skip the slow install test for changes that can't affect it (docs, changelog, ...).
+  # The filter is a job-level `if:` rather than workflow `paths:`, so a skipped install
+  # job reports as skipped (passing) instead of leaving required checks stuck on "Expected".
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    outputs:
+      install: ${{ steps.filter.outputs.install }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            install:
+              - install.sh
+              - bootstrap.sh
+              - Brewfile
+              - install/**
+              - home/**
+              - claude/**
+              - .github/workflows/ci.yml
+
   install:
     name: install (${{ matrix.os }})
+    needs: changes
+    # Pushes to main always run it, as a backstop for anything the filter misses
+    if: github.event_name == 'push' || needs.changes.outputs.install == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
