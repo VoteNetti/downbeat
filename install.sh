@@ -127,8 +127,21 @@ configure_git_identity() {
     email="${DOWNBEAT_GIT_EMAIL:-$(git config --file "$local_config" user.email)}"
     key="$(git config --file "$local_config" user.signingkey)"
 
-    if { [ -z "$name" ] || [ -z "$key" ]; } && [ -z "$github_user" ] && [ -t 0 ]; then
-        read -r -p "GitHub username: " github_user
+    for candidate in "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" /opt/1Password/op-ssh-sign; do
+        [ -x "$candidate" ] && signer="$candidate" && break
+    done
+
+    # Ask for the username only for a missing name, or for a key when this machine can sign
+    if { [ -z "$name" ] || { [ -z "$key" ] && [ -n "$signer" ]; }; } && [ -z "$github_user" ] && [ -t 0 ]; then
+        while :; do
+            read -r -p "GitHub username: " github_user
+            [[ "$github_user" != *@* ]] && break
+            echo "  That's an email; enter your GitHub username (e.g. octocat)."
+        done
+    fi
+    if [[ "$github_user" == *@* ]]; then
+        echo "⚠️  GitHub username '$github_user' looks like an email; ignoring it."
+        github_user=""
     fi
     name="${name:-$github_user}"
     if [ -z "$email" ] && [ -t 0 ]; then
@@ -144,10 +157,6 @@ configure_git_identity() {
         git config --file "$local_config" user.signingkey "key::$key"
     fi
 
-    for candidate in "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" /opt/1Password/op-ssh-sign; do
-        [ -x "$candidate" ] && signer="$candidate" && break
-    done
-
     if [ -n "$key" ] && [ -n "$email" ] && [ -n "$signer" ]; then
         git config --file "$local_config" gpg.ssh.program "$signer"
         git config --file "$local_config" --unset commit.gpgsign
@@ -160,9 +169,13 @@ configure_git_identity() {
     else
         git config --file "$local_config" commit.gpgsign false
         git config --file "$local_config" tag.gpgsign false
-        [ -z "$key" ] && echo "⚠️  No signing key: signing turned off on this machine (in ~/.gitconfig.local)"
-        [ -n "$key" ] && [ -z "$signer" ] && echo "⚠️  1Password op-ssh-sign not found: signing turned off on this machine (in ~/.gitconfig.local)"
-        [ -n "$key" ] && [ -n "$signer" ] && echo "⚠️  No git email: signing turned off on this machine (in ~/.gitconfig.local)"
+        if [ -z "$signer" ]; then
+            echo "⚠️  1Password op-ssh-sign not found: signing turned off on this machine (in ~/.gitconfig.local)"
+        elif [ -z "$key" ]; then
+            echo "⚠️  No signing key: signing turned off on this machine (in ~/.gitconfig.local)"
+        else
+            echo "⚠️  No git email: signing turned off on this machine (in ~/.gitconfig.local)"
+        fi
     fi
     return 0
 }

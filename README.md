@@ -136,7 +136,7 @@ No identity lives in this repo. `home/.gitconfig` only holds my preferences, inc
 
 `install.sh` also writes `~/.config/git/allowed_signers` from the email and key, so `git log --show-signature` can verify commits locally.
 
-Re-runs reuse what's saved and never ask again. To change identity or pick up a rotated key, edit or clear the values in `~/.gitconfig.local` and re-run `./install.sh`.
+Re-runs reuse what's saved and never ask again. The GitHub username is only needed for the name or, on a machine with 1Password, the signing key, so a machine without 1Password stops asking once the name is saved. A username containing `@` is rejected, since the key lookup needs the username, not the email. To change identity or pick up a rotated key, edit or clear the values in `~/.gitconfig.local` and re-run `./install.sh`.
 
 ## Packages
 
