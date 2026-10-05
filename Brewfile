@@ -41,7 +41,7 @@ if OS.mac?
 
   cask "1password-cli"
   cask "docker-desktop"
-  cask "iterm2"
+  cask "ghostty"
   cask "visual-studio-code"
   cask "sublime-text"
   cask "drawio"
