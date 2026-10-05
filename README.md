@@ -80,10 +80,9 @@ cd ~/.downbeat && git pull && ./install.sh
 5. Symlinks every file in `home/` to the same path under `$HOME`
 6. Sets up git identity and signing: asks for a GitHub username and email (first run only), looks up the public signing key on GitHub, and signs through 1Password (or turns signing off)
 7. Installs the [pre-commit](https://pre-commit.com) hooks in this repo (gitleaks and shellcheck)
-8. Merges my Claude Code settings into `~/.claude/settings.json`
-9. Installs nvm, Node.js LTS and global npm tools (`install/node.sh`)
-10. Sets zsh as the default shell
-11. Reminds me to run `gh auth login` if GitHub CLI isn't logged in
+8. Installs nvm, Node.js LTS and global npm tools (`install/node.sh`)
+9. Sets zsh as the default shell
+10. Reminds me to run `gh auth login` if GitHub CLI isn't logged in
 
 ## Layout
 
@@ -98,12 +97,6 @@ downbeat/
     .zprofile
     .gitconfig
     .oh-my-zsh/custom/plugins/netti-git/
-    .claude/agents/     # Software Factory sub-agents
-    .claude/commands/   # Slash commands (/new-spec)
-    .claude/hooks/      # Git safety hooks
-  claude/
-    settings.base.json  # Hooks + permissions merged into ~/.claude/settings.json
-    merge-settings.jq   # The merge logic
   install/node.sh       # nvm + Node LTS + global npm tools
   test/                 # Docker-based Ubuntu testing
 ```
@@ -112,7 +105,7 @@ downbeat/
 
 Editing `~/.zshrc` edits `home/.zshrc` in this repo. That also catches tools that append to rc files: their changes show up in `git status`.
 
-Files are linked one at a time, never whole directories, so `~/.claude` and `~/.oh-my-zsh` stay real directories that tools can write to. An existing file is moved to `<file>.bak.<timestamp>` before it's replaced.
+Files are linked one at a time, never whole directories, so tool-owned directories like `~/.oh-my-zsh` stay real and writable. An existing file is moved to `<file>.bak.<timestamp>` before it's replaced.
 
 To add a dotfile, put it in `home/` at its path relative to `$HOME` and re-run `./install.sh`.
 
@@ -139,10 +132,6 @@ No identity lives in this repo. `home/.gitconfig` only holds my preferences, inc
 `install.sh` also writes `~/.config/git/allowed_signers` from the email and key, so `git log --show-signature` can verify commits locally.
 
 Re-runs reuse what's saved and never ask again. To change identity or pick up a rotated key, edit or clear the values in `~/.gitconfig.local` and re-run `./install.sh`.
-
-### Claude Code settings
-
-Claude Code writes to `~/.claude/settings.json` itself (model, effort level, plugins), so that file is **merged**, not symlinked. `claude/settings.base.json` holds my hooks and permission allowlist; the merge adds them without touching other keys or hooks, and re-running never duplicates them.
 
 ## Packages
 
@@ -175,12 +164,11 @@ See [CLAUDE.md](CLAUDE.md) for the full testing instructions.
 
 ## Using it yourself
 
-The one-liner sets up *your* git identity and signing key, since it asks for them. Everything else (packages, shell setup, Claude Code config) is mine, so to make it yours, fork it and change:
+The one-liner sets up *your* git identity and signing key, since it asks for them. Everything else (packages, shell setup) is mine, so to make it yours, fork it and change:
 
 1. **`Brewfile`:** your own tools
 2. **`bootstrap.sh`:** point `DOWNBEAT_REPO` at your fork
-3. **`home/.claude/` and `claude/settings.base.json`:** my Claude Code agents, hooks and permissions. Keep, change or delete them.
-4. **`home/`:** anything else you'd do differently
+3. **`home/`:** anything else you'd do differently
 
 ## Versioning
 

@@ -71,7 +71,7 @@ install_oh_my_zsh() {
 }
 
 # Symlink every file under home/ to the same path under $HOME.
-# Files are linked individually so tool-owned directories (~/.claude, ~/.oh-my-zsh) stay real.
+# Files are linked individually so tool-owned directories (like ~/.oh-my-zsh) stay real.
 link_dotfiles() {
     local src rel dest
     while IFS= read -r -d '' src; do
@@ -167,16 +167,6 @@ configure_git_identity() {
     return 0
 }
 
-# Claude Code writes to settings.json itself, so it is merged rather than symlinked
-merge_claude_settings() {
-    local settings="$HOME/.claude/settings.json" merged
-    mkdir -p "$HOME/.claude"
-    [ -s "$settings" ] || echo '{}' > "$settings"
-    merged="$(jq -s -f "$REPO_DIR/claude/merge-settings.jq" "$settings" "$REPO_DIR/claude/settings.base.json")" || return 1
-    printf '%s\n' "$merged" > "$settings"
-    echo "✓ Claude settings merged"
-}
-
 # pre-commit hooks for this repo (gitleaks + shellcheck): dotfiles are symlinked here, so
 # anything a tool appends to ~/.zshrc (API keys included) would otherwise be one commit
 # away from GitHub. -f replaces the old hand-written hook.
@@ -220,7 +210,6 @@ step "Oh My Zsh" install_oh_my_zsh
 step "Dotfiles" link_dotfiles
 step "Git identity and signing" configure_git_identity
 step "Repo hooks (pre-commit)" install_repo_hooks
-step "Claude settings" merge_claude_settings
 step "Node.js (nvm)" bash "$REPO_DIR/install/node.sh"
 step "Default shell" change_default_shell
 
