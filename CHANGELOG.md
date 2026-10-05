@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-05
+
+Breaking: `install.sh` no longer manages Claude Code config, and iTerm2 is replaced by Ghostty. On an existing install, the old `~/.claude/{agents,commands,hooks}` symlinks point at deleted files, and their hook entries stay in `~/.claude/settings.json` until you replace or remove them. Brew doesn't uninstall iTerm2; run `brew uninstall --cask iterm2` if you don't want it.
+
 ### Added
 - Ghostty (cask) replaces iTerm2, with my config tracked at `home/.config/ghostty/config.ghostty` (the XDG path, read on macOS and Linux). It includes an optional, untracked `~/.config/ghostty/config.local.ghostty` for per-machine settings
 
