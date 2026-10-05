@@ -18,11 +18,17 @@ fi
 
 # shellcheck source=/dev/null
 . "$NVM_DIR/nvm.sh"
+# Stop here rather than fall through to some other npm on PATH (e.g. Homebrew's).
+if ! command -v nvm &> /dev/null; then
+    echo "❌ nvm didn't load from $NVM_DIR/nvm.sh (often a leftover Homebrew or older nvm)."
+    echo "   Move it aside and re-run to get a fresh copy: mv $NVM_DIR $NVM_DIR.old && ./install.sh"
+    exit 1
+fi
 
 echo "📦 Installing Node.js LTS..."
-nvm install --lts
+nvm install --lts || exit 1
 nvm alias default 'lts/*'
-nvm use default
+nvm use default || exit 1
 
 echo "📦 Installing global npm tools: ${NPM_GLOBALS[*]}"
 npm install -g "${NPM_GLOBALS[@]}"
