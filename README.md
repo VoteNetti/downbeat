@@ -118,8 +118,13 @@ These are sourced or included if present, and never tracked:
 | `~/.zshrc.local` | Per-machine aliases and tool integrations |
 | `~/.zprofile.local` | Per-machine PATH changes (e.g. Docker Desktop) |
 | `~/.gitconfig.local` | Written by `install.sh`: name, email, signing key, and the 1Password signer (or signing turned off) |
+| `~/.config/ghostty/config.local.ghostty` | Per-machine Ghostty settings (font size, etc.) |
 
 Use `git config --file ~/.gitconfig.local ...` rather than `git config --global ...`, which would write to the tracked `home/.gitconfig`.
+
+### Ghostty
+
+My Ghostty config is `home/.config/ghostty/config.ghostty`, at the XDG path Ghostty reads on both macOS and Linux. On macOS, Ghostty also reads `~/Library/Application Support/com.mitchellh.ghostty/config.ghostty` *after* the XDG file, so anything there overrides this repo. Keep that file absent. Reload with `cmd+shift+,`.
 
 ### Git identity and signing
 
