@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [3.0.1] - 2026-10-05
+
+### Fixed
+- `install/node.sh` stops with a clear message when `~/.nvm/nvm.sh` exists but doesn't load (e.g. a leftover Homebrew or older nvm), and says how to replace it. Before, it carried on and ran whatever `npm` was on PATH, which failed with `nvm: command not found` and an unrelated `EEXIST` error from Homebrew's npm
+- `install/node.sh` fails the step if `nvm install` or `nvm use` fails, instead of installing global tools with the wrong Node
+
+## [3.0.0] - 2026-10-05
 
 ### Added
 - Ghostty (cask) replaces iTerm2, with my config tracked at `home/.config/ghostty/config.ghostty` (the XDG path, read on macOS and Linux). It includes an optional, untracked `~/.config/ghostty/config.local.ghostty` for per-machine settings
