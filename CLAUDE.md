@@ -9,11 +9,10 @@ VoteNetti's personal workstation setup, published as a public repo. The defaults
 ## Architecture
 
 - `Brewfile` — all packages. Formulae outside `if OS.mac?` must also work with Homebrew on Linux; casks and macOS-only formulae (e.g. `powershell`) go inside the block.
-- `home/` — mirrors `$HOME`. `link_dotfiles()` in `install.sh` symlinks each *file* (never a directory) to the same path under `$HOME`, backing up any real file to `*.bak.<timestamp>`. File-level linking keeps tool-owned directories like `~/.claude` and `~/.oh-my-zsh` real.
+- `home/` — mirrors `$HOME`. `link_dotfiles()` in `install.sh` symlinks each *file* (never a directory) to the same path under `$HOME`, backing up any real file to `*.bak.<timestamp>`. File-level linking keeps tool-owned directories like `~/.oh-my-zsh` real.
 - Git pushes to GitHub use SSH: `home/.gitconfig` has `pushInsteadOf` rewriting `https://github.com/` to `git@github.com:`, while `bootstrap.sh` still clones over HTTPS (works before any keys exist). Don't add a `gh` credential helper or tell people to run `gh auth setup-git` (it edits the tracked `~/.gitconfig` symlink).
 - Machine-specific settings go in untracked `~/.zshrc.local`, `~/.zprofile.local`, `~/.gitconfig.local`. Never write per-machine values into `home/`.
 - No identity is tracked. `home/.gitconfig` holds preferences only (SSH signing on for commits and tags). `configure_git_identity()` writes name, email and the public signing key to `~/.gitconfig.local`: from `DOWNBEAT_GITHUB_USER` / `DOWNBEAT_GIT_EMAIL`, then saved values, then a prompt. The key comes from GitHub's public `users/<user>/ssh_signing_keys` endpoint (no login), and `~/.config/git/allowed_signers` is generated from it. Signing uses 1Password's `op-ssh-sign` and is turned off in `~/.gitconfig.local` when there's no signer or key. Commits are signed via 1Password, so committing may prompt the user for Touch ID.
-- `claude/settings.base.json` + `claude/merge-settings.jq` — merged into `~/.claude/settings.json` with `jq` (not symlinked, because Claude Code writes to that file).
 - `install/node.sh` — nvm via the official installer (`PROFILE=/dev/null`, so it never edits rc files), Node LTS, global npm tools. Oh My Zsh's `nvm` plugin lazy-loads nvm.
 - Linux only needs apt for Homebrew's prerequisites and zsh; everything else comes from brew.
 - Docker comes from the `docker-desktop` cask only; never add brew's `docker`/`docker-completion` formulae (they conflict with Desktop's bundled CLI). VS Code settings are not managed (Settings Sync).
@@ -25,7 +24,6 @@ VoteNetti's personal workstation setup, published as a public repo. The defaults
 
 - Syntax check: `bash -n install.sh install/node.sh` and `zsh -n home/.zshrc home/.zprofile`
 - List Brewfile entries: `brew bundle list --file=Brewfile --all`
-- Test the settings merge without writing: `jq -s -f claude/merge-settings.jq ~/.claude/settings.json claude/settings.base.json`
 - Lint and scan everything: `pre-commit run --all-files`
 - Run installation: `./install.sh`
 
@@ -90,32 +88,9 @@ Versions are milestones: `bootstrap.sh` always installs from `main`, not from a 
 
 A GitHub Action (`.github/workflows/release.yml`) automatically creates a GitHub Release when a version tag is pushed.
 
-## Claude Code Configuration
+## Claude Code
 
-Claude Code config is deployed to user scope (`~/.claude/`) by `install.sh`.
-
-| Source | Destination | How |
-|--------|-------------|-----|
-| `home/.claude/agents/*.md` | `~/.claude/agents/` | Symlinked per file (7 Software Factory agents) |
-| `home/.claude/commands/*.md` | `~/.claude/commands/` | Symlinked per file (`/new-spec`) |
-| `home/.claude/hooks/*.sh` | `~/.claude/hooks/` | Symlinked per file (executable bit tracked in git) |
-| `claude/settings.base.json` | `~/.claude/settings.json` | Merged by `merge_claude_settings()` |
-
-**Agents** (Software Factory pattern):
-- `builder` — implements features from specs (opus, green)
-- `validator` — runs scenarios and reports pass/fail (sonnet, blue)
-- `security-auditor` — static analysis and CVE scanning; triggers proactively on auth/dep changes (opus, red)
-- `planner` — decomposes large tasks into ordered seeds (opus, yellow)
-- `explorer` — read-only codebase navigation (haiku, cyan)
-- `deployer` — GitHub Actions + AWS deployments, runs in background (sonnet, orange)
-- `specifier` — turns rough ideas into build-ready specs; reads spec files only (opus, purple)
-
-**Hooks wired into `~/.claude/settings.json` under `PreToolUse`:**
-- `commit-msg-check.sh` — enforces `[feat|fix|chore|infra|docs]` prefix (no `[spec-NNN]` — that's project-level)
-- `branch-protection.sh` — blocks direct commits to main
-- `pull-before-push.sh` — requires pull if local branch is behind remote
-
-**Settings merge strategy:** `claude/merge-settings.jq` leaves every key it doesn't own alone (e.g. `model`, `effortLevel`). It appends missing `permissions.allow` entries in order, removes the base hook commands from wherever they are, then re-appends the base hook entries. That keeps the user's own hooks and means re-running never duplicates them.
+This repo doesn't install or manage any Claude Code config (`~/.claude` agents, hooks, settings); that lives in a separate harness setup. Don't add it back under `home/`. This file is the only tracked Claude file. Local-only project files (`.claude/settings.local.json`, `CLAUDE.local.md`) are gitignored.
 
 ## Secret Scanning
 

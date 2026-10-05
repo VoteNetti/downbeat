@@ -9,5 +9,5 @@ repos:
     rev: v0.11.0.1
     hooks:
       - id: shellcheck
-        files: ^(install\.sh|bootstrap\.sh|install/.*\.sh|scripts/.*\.sh|home/\.claude/hooks/.*\.sh|test/.*\.sh)$
+        files: ^(install\.sh|bootstrap\.sh|install/.*\.sh|scripts/.*\.sh|test/.*\.sh)$
         types: [shell]

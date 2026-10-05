@@ -48,7 +48,6 @@ jobs:
               - Brewfile
               - install/**
               - home/**
-              - claude/**
               - .github/workflows/ci.yml
 
   install:
@@ -84,6 +83,4 @@ jobs:
           test "$(git config --file ~/.gitconfig.local user.email)" = "$DOWNBEAT_GIT_EMAIL"
           # Dotfiles are symlinks into the clone
           test "$(readlink ~/.zshrc)" = "$HOME/.downbeat/home/.zshrc"
-          test -x ~/.claude/hooks/branch-protection.sh
-          jq -e '.hooks.PreToolUse | length > 0' ~/.claude/settings.json
           test -f ~/.downbeat/.git/hooks/pre-commit
