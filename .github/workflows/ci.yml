@@ -29,8 +29,9 @@ jobs:
           GITLEAKS_CONFIG: .gitleaks.toml
 
   # Skip the slow install test for changes that can't affect it (docs, changelog, ...).
-  # The filter is a job-level `if:` rather than workflow `paths:`, so a skipped install
-  # job reports as skipped (passing) instead of leaving required checks stuck on "Expected".
+  # The filter is a step-level `if:`, not a job-level one or workflow `paths:`: a skipped
+  # matrix job never expands, so the required "install (<os>)" checks would never report
+  # and the PR would wait on them forever. This way both checks always run and pass fast.
   changes:
     name: changes
     runs-on: ubuntu-latest
@@ -53,8 +54,6 @@ jobs:
   install:
     name: install (${{ matrix.os }})
     needs: changes
-    # Pushes to main always run it, as a backstop for anything the filter misses
-    if: github.event_name == 'push' || needs.changes.outputs.install == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -66,16 +65,25 @@ jobs:
       DOWNBEAT_GIT_EMAIL: ci@example.com
       HOMEBREW_NO_ANALYTICS: "1"
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      # Pushes to main always run it, as a backstop for anything the filter misses
+      RUN_INSTALL: ${{ github.event_name == 'push' || needs.changes.outputs.install == 'true' }}
     steps:
+      - name: Skip (no install-related changes)
+        if: env.RUN_INSTALL != 'true'
+        run: echo "Nothing here affects the install; skipping."
       - uses: actions/checkout@v7
+        if: env.RUN_INSTALL == 'true'
       - name: Bootstrap from this commit
+        if: env.RUN_INSTALL == 'true'
         # bootstrap.sh clones DOWNBEAT_REPO, so point it at the checkout instead of GitHub
         env:
           DOWNBEAT_REPO: ${{ github.workspace }}
         run: bash bootstrap.sh
       - name: Run install.sh again (idempotence)
+        if: env.RUN_INSTALL == 'true'
         run: ~/.downbeat/install.sh
       - name: Check the result
+        if: env.RUN_INSTALL == 'true'
         run: |
           set -euo pipefail
           # No 1Password on runners, so signing must be off
