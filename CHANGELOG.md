@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- CI: PRs that don't touch install files (docs, changelog) no longer wait forever on the required `install (ubuntu-latest)` / `install (macos-latest)` checks. A matrix job skipped by a job-level `if:` never expands, so those checks never reported; the skip is now per step, so both checks always run and pass in seconds when there's nothing to test
+
+## [3.0.1] - 2026-10-05
+
+### Fixed
+- `install/node.sh` stops with a clear message when `~/.nvm/nvm.sh` exists but doesn't load (e.g. a leftover Homebrew or older nvm), and says how to replace it. Before, it carried on and ran whatever `npm` was on PATH, which failed with `nvm: command not found` and an unrelated `EEXIST` error from Homebrew's npm
+- `install/node.sh` fails the step if `nvm install` or `nvm use` fails, instead of installing global tools with the wrong Node
+
 ## [3.0.0] - 2026-10-05
 
 Breaking: `install.sh` no longer manages Claude Code config, and iTerm2 is replaced by Ghostty. On an existing install, the old `~/.claude/{agents,commands,hooks}` symlinks point at deleted files, and their hook entries stay in `~/.claude/settings.json` until you replace or remove them. Brew doesn't uninstall iTerm2; run `brew uninstall --cask iterm2` if you don't want it.
