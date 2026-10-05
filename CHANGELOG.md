@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- CI: PRs that don't touch install files (docs, changelog) no longer wait forever on the required `install (ubuntu-latest)` / `install (macos-latest)` checks. A matrix job skipped by a job-level `if:` never expands, so those checks never reported; the skip is now per step, so both checks always run and pass in seconds when there's nothing to test
+
 ## [3.0.1] - 2026-10-05
 
 ### Fixed
