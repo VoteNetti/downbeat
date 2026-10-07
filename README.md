@@ -14,7 +14,7 @@ Everything here reflects my preferences: the tools I use, the defaults I like. I
 - **nvm for Node.js,** loaded lazily so the shell starts fast.
 - **1Password for secrets.** Commits and tags are signed with an SSH key that only exists in 1Password.
 - **Docker Desktop** provides Docker on macOS with a GUI.
-- **Re-running is updating.** `install.sh` is safe to run any time; there's no separate update mode.
+- **Re-running is updating.** `install.sh` is safe to run any time; `downbeat update` is the shortcut.
 
 ## Prerequisites
 
@@ -63,13 +63,17 @@ Dotfiles are symlinked into `~/.downbeat`, so the clone stays there. To use a di
 
 The clone uses HTTPS so it works before any keys exist. `home/.gitconfig` rewrites GitHub pushes to SSH, so pushing needs your SSH key on GitHub and nothing else. `gh auth login` is only for `gh` itself (pull requests, issues).
 
-## Updating
+## The `downbeat` command
 
-```bash
-cd ~/.downbeat && git pull && ./install.sh
-```
+`home/.local/bin/downbeat` is linked into `~/.local/bin`, so it's on my PATH after the first install.
 
-`./install.sh` installs anything new in the `Brewfile`, upgrades what's outdated, and re-links dotfiles.
+| Command | What it does |
+|---|---|
+| `downbeat update` | Fast-forward pulls the clone, then runs `./install.sh` |
+| `downbeat status` | Checks GitHub (over plain HTTPS, no key needed) for a new release tag, shows uncommitted changes under `home/` (say, a tool appended to `~/.zshrc`), and runs `brew bundle check` |
+| `downbeat edit` | Opens the clone in `$VISUAL`/`$EDITOR` (or VS Code); with neither, or inside `$(...)`, prints the path, so `cd "$(downbeat edit)"` works |
+
+`./install.sh` installs anything new in the `Brewfile`, upgrades what's outdated, and re-links dotfiles. If the pull can't fast-forward, `downbeat update` stops before installing.
 
 ## What install.sh does
 
@@ -96,6 +100,7 @@ downbeat/
     .zshrc
     .zprofile
     .gitconfig
+    .local/bin/downbeat # The downbeat command (update, status, edit)
     .oh-my-zsh/custom/plugins/netti-git/
   install/node.sh       # nvm + Node LTS + global npm tools
   test/                 # Docker-based Ubuntu testing
