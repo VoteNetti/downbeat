@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - `downbeat` command (`home/.local/bin/downbeat`): `update` (fast-forward pull, then `install.sh`), `status` (new release tag on GitHub, uncommitted changes under `home/`, and `brew bundle check`), and `edit` (open the clone in my editor, or print its path)
+- Ghostty: `cmd+shift+e` also toggles split zoom (alongside `cmd+shift+enter`)
 
 ## [3.1.1] - 2026-10-07
 
