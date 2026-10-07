@@ -178,3 +178,7 @@ The one-liner sets up *your* git identity and signing key, since it asks for the
 ## Versioning
 
 [Semantic versioning](https://semver.org/) with git tags. Versions are milestones: `bootstrap.sh` always installs from `main`, not from a tag. See [CHANGELOG.md](CHANGELOG.md) for release notes and [CLAUDE.md](CLAUDE.md) for the release process.
+
+## License
+
+[MIT](LICENSE). Take whatever is useful; keep the copyright notice.
