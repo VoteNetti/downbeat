@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-10-07
+
 ### Added
 - MIT `LICENSE`, mentioned at the end of the README
 - `.github/dependabot.yml`: weekly `github-actions` updates
 
 ### Changed
+- Ghostty uses Courier New (`font-family`), with section headers in the config
 - GitHub Actions are pinned to full commit SHAs (version in a comment) so a moved tag can't run someone else's code
 
 ## [3.1.0] - 2026-10-05
