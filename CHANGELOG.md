@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `downbeat` command (`home/.local/bin/downbeat`): `update` (fast-forward pull, then `install.sh`), `status` (new release tag on GitHub, uncommitted changes under `home/`, and `brew bundle check`), and `edit` (open the clone in my editor, or print its path)
+
 ## [3.1.1] - 2026-10-07
 
 ### Added

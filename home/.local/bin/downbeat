@@ -1,0 +1,110 @@
+#!/bin/bash
+# downbeat: day-to-day commands for this setup. Linked into ~/.local/bin by install.sh.
+
+# This file is a symlink into the clone, so follow it to find the repo
+resolve_repo() {
+    local src="${BASH_SOURCE[0]}" dir
+    while [ -L "$src" ]; do
+        dir="$(cd -P "$(dirname "$src")" && pwd)"
+        src="$(readlink "$src")"
+        [[ "$src" = /* ]] || src="$dir/$src"
+    done
+    # <repo>/home/.local/bin/downbeat
+    (cd -P "$(dirname "$src")/../../.." && pwd)
+}
+
+REPO_DIR="$(resolve_repo)"
+if [ ! -x "$REPO_DIR/install.sh" ]; then
+    echo "downbeat: can't find the clone (looked in $REPO_DIR)" >&2
+    exit 1
+fi
+
+usage() {
+    cat <<USAGE
+Usage: downbeat <command>
+
+  update   Fast-forward the clone, then run install.sh
+  status   New releases, uncommitted dotfile changes, and Brewfile packages that aren't installed
+  edit     Open the clone in \$VISUAL / \$EDITOR (or VS Code); prints its path if none is found
+USAGE
+}
+
+cmd_update() {
+    git -C "$REPO_DIR" pull --ff-only || return
+    exec "$REPO_DIR/install.sh"
+}
+
+# Same public URL bootstrap.sh clones from. Read over plain HTTPS, never the clone's
+# `origin` (an SSH remote would need a key and a 1Password prompt).
+DOWNBEAT_REPO="${DOWNBEAT_REPO:-https://github.com/VoteNetti/downbeat.git}"
+
+# Compare this clone's release with the latest release tag on GitHub
+check_updates() {
+    local current latest
+    if ! latest="$(GIT_TERMINAL_PROMPT=0 git ls-remote --tags --refs "$DOWNBEAT_REPO" 'v*' 2>&1)"; then
+        echo "⚠️  Couldn't reach $DOWNBEAT_REPO; skipping the release check"
+        echo "    ${latest//$'\n'/$'\n'    }"
+        return 0
+    fi
+    latest="$(printf '%s\n' "$latest" | sed 's#.*refs/tags/##' | sort -V | tail -n 1)"
+    current="$(git -C "$REPO_DIR" describe --tags --abbrev=0 2> /dev/null)"
+
+    if [ -n "$latest" ] && [ "$latest" != "$current" ] \
+        && [ "$(printf '%s\n%s\n' "${current:-v0}" "$latest" | sort -V | tail -n 1)" = "$latest" ]; then
+        echo "⬆️  New release $latest (this clone is at ${current:-no release}); run: downbeat update"
+        return 1
+    fi
+    echo "✓ On the latest release${current:+ ($current)}"
+}
+
+cmd_status() {
+    local changes rc=0
+    echo "▶ Updates"
+    check_updates || rc=1
+
+    echo
+    echo "▶ Dotfiles"
+    changes="$(git -C "$REPO_DIR" status --short -- home)"
+    if [ -n "$changes" ]; then
+        echo "$changes"
+        echo "  (a tool may have edited a dotfile; review with: git -C $REPO_DIR diff)"
+        rc=1
+    else
+        echo "✓ No uncommitted changes in home/"
+    fi
+
+    echo
+    echo "▶ Brewfile"
+    if command -v brew &> /dev/null; then
+        HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file="$REPO_DIR/Brewfile" --verbose || rc=1
+    else
+        echo "⚠️  brew not found"
+        rc=1
+    fi
+    return "$rc"
+}
+
+cmd_edit() {
+    local editor="${VISUAL:-${EDITOR:-}}"
+    if [ -z "$editor" ] && command -v code &> /dev/null; then
+        editor=code
+    fi
+    if [ -n "$editor" ] && [ -t 1 ]; then
+        # shellcheck disable=SC2086 # $EDITOR may carry arguments, like "code --wait"
+        exec $editor "$REPO_DIR"
+    fi
+    # No editor or not a terminal (e.g. inside $(...)): print the path, so `cd "$(downbeat edit)"` works
+    echo "$REPO_DIR"
+}
+
+case "${1:-}" in
+    update) cmd_update ;;
+    status) cmd_status ;;
+    edit) cmd_edit ;;
+    -h|--help|help|"") usage ;;
+    *)
+        echo "downbeat: unknown command '$1'" >&2
+        usage >&2
+        exit 2
+        ;;
+esac
