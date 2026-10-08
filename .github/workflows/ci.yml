@@ -87,8 +87,7 @@ jobs:
           # GUI config and the downbeat command are not linked
           test ! -e ~/.config/ghostty
           test ! -e ~/.local/bin/downbeat
-          # No Node, no signing, no pre-commit hook
-          test ! -d ~/.nvm
+          # No signing, no pre-commit hook (the runner image has its own nvm, so Node can't be checked)
           test "$(git config --file ~/.gitconfig.local commit.gpgsign)" = "false"
           test ! -e ~/.downbeat/.git/hooks/pre-commit
           # The runner image ships Homebrew; minimal must not have used it
