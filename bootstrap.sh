@@ -2,6 +2,7 @@
 # downbeat bootstrap for a new machine:
 #   curl -fsSL https://raw.githubusercontent.com/VoteNetti/downbeat/main/bootstrap.sh | bash
 #
+# Terminal-only machines: pipe to `bash -s -- --minimal` (or set DOWNBEAT_MODE=minimal).
 # Gets git, clones downbeat to $DOWNBEAT_DIR (default ~/.downbeat), then runs install.sh.
 # Dotfiles are symlinked into that clone, so keep it where it is afterwards.
 set -euo pipefail
@@ -35,7 +36,7 @@ fi
 
 # stdin is this script when piped from curl; give install.sh the terminal if there is one
 if [ -r /dev/tty ] && { : < /dev/tty; } 2> /dev/null; then
-    exec "$DOWNBEAT_DIR/install.sh" < /dev/tty
+    exec "$DOWNBEAT_DIR/install.sh" "$@" < /dev/tty
 else
-    exec "$DOWNBEAT_DIR/install.sh"
+    exec "$DOWNBEAT_DIR/install.sh" "$@"
 fi

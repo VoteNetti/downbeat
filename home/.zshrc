@@ -14,11 +14,25 @@ COMPLETION_WAITING_DOTS="true"
 zstyle ':omz:plugins:nvm' lazy yes
 zstyle ':omz:plugins:nvm' lazy-cmd cdk
 
-plugins=(git netti-git history brew nmap 1password vscode aws terraform nvm zsh-interactive-cd)
+# Plugins for tools that aren't installed (minimal machines) are left out
+plugins=(git netti-git history zsh-interactive-cd)
+for tool in brew nmap op:1password code:vscode aws terraform; do
+    (( $+commands[${tool%%:*}] )) && plugins+=(${tool##*:})
+done
+unset tool
+[[ -d "${NVM_DIR:-$HOME/.nvm}" ]] && plugins+=(nvm)
 
 source "$ZSH/oh-my-zsh.sh"
 
-command -v fzf &> /dev/null && source <(fzf --zsh)
+if command -v fzf &> /dev/null; then
+    if fzf --zsh &> /dev/null; then
+        source <(fzf --zsh)
+    elif [[ -d /usr/share/doc/fzf/examples ]]; then
+        # apt's fzf can predate `fzf --zsh`
+        source /usr/share/doc/fzf/examples/key-bindings.zsh
+        source /usr/share/doc/fzf/examples/completion.zsh 2> /dev/null
+    fi
+fi
 
 alias wmip="curl checkip.amazonaws.com"
 alias dv="dirs -v"

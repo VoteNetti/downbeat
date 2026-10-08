@@ -63,9 +63,19 @@ Dotfiles are symlinked into `~/.downbeat`, so the clone stays there. To use a di
 
 The clone uses HTTPS so it works before any keys exist. `home/.gitconfig` rewrites GitHub pushes to SSH, so pushing needs your SSH key on GitHub and nothing else. `gh auth login` is only for `gh` itself (pull requests, issues).
 
+## Minimal install
+
+For headless boxes (homelab servers, containers) I only want the shell I'm used to, not the workstation. Minimal mode is for Debian/Ubuntu:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/VoteNetti/downbeat/main/bootstrap.sh | bash -s -- --minimal
+```
+
+(`DOWNBEAT_MODE=minimal` does the same, and `./install.sh --minimal` works from a clone.) It installs zsh and fzf with apt, Oh My Zsh, and the shell dotfiles. It skips Homebrew, the `Brewfile`, GUI config, the `downbeat` command, Node and commit signing (git identity is still set up). The mode is saved in `~/.config/downbeat/mode`, so re-running `./install.sh` stays minimal; `./install.sh --full` switches back.
+
 ## The `downbeat` command
 
-`home/.local/bin/downbeat` is linked into `~/.local/bin`, so it's on my PATH after the first install.
+Full installs only. `home/.local/bin/downbeat` is linked into `~/.local/bin`, so it's on my PATH after the first install.
 
 | Command | What it does |
 |---|---|
@@ -76,6 +86,8 @@ The clone uses HTTPS so it works before any keys exist. `home/.gitconfig` rewrit
 `./install.sh` installs anything new in the `Brewfile`, upgrades what's outdated, and re-links dotfiles. If the pull can't fast-forward, `downbeat update` stops before installing.
 
 ## What install.sh does
+
+This is the full install; [minimal](#minimal-install) runs only the apt, Oh My Zsh, dotfiles, git identity and default shell steps.
 
 1. **Linux only:** installs Homebrew's prerequisites and zsh via apt (`build-essential procps curl file git zsh`)
 2. Installs [Homebrew](https://brew.sh) (on macOS this also installs the Xcode Command Line Tools)
