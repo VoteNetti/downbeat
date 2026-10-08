@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Minimal mode asks for a git name instead of a GitHub username (there's no key lookup there)
+- Minimal mode on minimized Ubuntu: fzf's zsh files are extracted from the apt package when `/usr/share/doc` has been stripped, and `.zshrc` no longer errors when they're missing
+- `.zshrc` falls back to `C.UTF-8` when the forwarded locale isn't installed, so the prompt arrow no longer renders as `?`
+
 ## [3.2.0] - 2026-10-07
 
 ### Added
