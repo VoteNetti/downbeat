@@ -51,6 +51,53 @@ jobs:
               - home/**
               - .github/workflows/ci.yml
 
+  install-minimal:
+    name: install (minimal)
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOWNBEAT_GIT_EMAIL: ci@example.com
+      RUN_INSTALL: ${{ github.event_name == 'push' || needs.changes.outputs.install == 'true' }}
+    steps:
+      - name: Skip (no install-related changes)
+        if: env.RUN_INSTALL != 'true'
+        run: echo "Nothing here affects the install; skipping."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.RUN_INSTALL == 'true'
+      - name: Bootstrap minimal from this commit
+        if: env.RUN_INSTALL == 'true'
+        env:
+          DOWNBEAT_REPO: ${{ github.workspace }}
+          DOWNBEAT_MODE: minimal
+          DOWNBEAT_GITHUB_USER: VoteNetti
+        run: bash bootstrap.sh
+      - name: Run install.sh again with no flag (mode is remembered)
+        if: env.RUN_INSTALL == 'true'
+        env:
+          DOWNBEAT_GITHUB_USER: VoteNetti
+        run: ~/.downbeat/install.sh
+      - name: Check the result
+        if: env.RUN_INSTALL == 'true'
+        run: |
+          set -euo pipefail
+          test "$(cat ~/.config/downbeat/mode)" = "minimal"
+          dpkg -s fzf zsh > /dev/null
+          test "$(readlink ~/.zshrc)" = "$HOME/.downbeat/home/.zshrc"
+          # GUI config and the downbeat command are not linked
+          test ! -e ~/.config/ghostty
+          test ! -e ~/.local/bin/downbeat
+          # No signing, no pre-commit hook (the runner image has its own nvm, so Node can't be checked)
+          test "$(git config --file ~/.gitconfig.local commit.gpgsign)" = "false"
+          test ! -e ~/.downbeat/.git/hooks/pre-commit
+          # The runner image ships Homebrew; minimal must not have used it
+          if command -v brew > /dev/null; then ! brew list --formula fzf 2> /dev/null; fi
+          # The shell starts cleanly without the tools a full install has
+          out="$(zsh -ic 'echo shell-ok' 2>&1)"
+          echo "$out"
+          grep -q shell-ok <<< "$out"
+          ! grep -Eiq 'not found|no such file|error' <<< "$out"
+
   install:
     name: install (${{ matrix.os }})
     needs: changes

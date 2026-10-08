@@ -4,12 +4,32 @@
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FAILURES=()
+MODE_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/downbeat/mode"
 
-if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-    echo "Usage: $0"
-    echo "  Installs Homebrew and the Brewfile, Oh My Zsh, nvm/Node, and links home/ into \$HOME."
+usage() {
+    echo "Usage: $0 [--minimal | --full]"
+    echo "  Full (default): Homebrew and the Brewfile, Oh My Zsh, nvm/Node, and links home/ into \$HOME."
+    echo "  --minimal: terminal-only machines (Debian/Ubuntu). zsh, fzf (apt), Oh My Zsh and the shell"
+    echo "             dotfiles; no Homebrew, GUI config, downbeat command, Node or commit signing."
+    echo "  The mode can also be set with DOWNBEAT_MODE=minimal|full. It is saved in"
+    echo "  $MODE_FILE, so a bare re-run keeps it; --full switches back."
     echo "  Re-run at any time to pick up changes and upgrade packages."
-    exit 0
+}
+
+# Mode precedence: flag, then DOWNBEAT_MODE, then the saved mode, then full
+MODE="${DOWNBEAT_MODE:-}"
+case "${1:-}" in
+    --help | -h) usage; exit 0 ;;
+    --minimal) MODE=minimal ;;
+    --full) MODE=full ;;
+    "") ;;
+    *) usage >&2; exit 2 ;;
+esac
+[ -z "$MODE" ] && [ -f "$MODE_FILE" ] && MODE="$(cat "$MODE_FILE")"
+MODE="${MODE:-full}"
+if [ "$MODE" != minimal ] && [ "$MODE" != full ]; then
+    echo "❌ Unknown mode '$MODE' (expected minimal or full)" >&2
+    exit 2
 fi
 
 # Run a step, recording failures instead of aborting
@@ -22,6 +42,20 @@ step() {
         FAILURES+=("$name")
         echo "⚠️  $name failed (continuing)"
     fi
+}
+
+# Minimal mode: zsh and fzf from apt, no Homebrew
+install_minimal_packages() {
+    if [ "$(uname -s)" != "Linux" ] || ! command -v apt-get &> /dev/null; then
+        echo "Minimal mode needs a Debian/Ubuntu system (apt)."
+        return 1
+    fi
+    sudo apt-get update && sudo apt-get install -y curl git zsh fzf
+}
+
+save_mode() {
+    mkdir -p "$(dirname "$MODE_FILE")"
+    echo "$MODE" > "$MODE_FILE"
 }
 
 install_linux_prereqs() {
@@ -77,6 +111,12 @@ link_dotfiles() {
     while IFS= read -r -d '' src; do
         rel="${src#"$REPO_DIR/home/"}"
         dest="$HOME/$rel"
+        # GUI config and the downbeat command (which needs brew) are not for minimal machines
+        if [ "$MODE" = minimal ]; then
+            case "$rel" in
+                .config/ghostty/* | .local/bin/downbeat) continue ;;
+            esac
+        fi
         if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
             continue
         fi
@@ -127,9 +167,12 @@ configure_git_identity() {
     email="${DOWNBEAT_GIT_EMAIL:-$(git config --file "$local_config" user.email)}"
     key="$(git config --file "$local_config" user.signingkey)"
 
-    for candidate in "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" /opt/1Password/op-ssh-sign; do
-        [ -x "$candidate" ] && signer="$candidate" && break
-    done
+    # Minimal machines are servers and containers: no signing, so no signer or key lookup
+    if [ "$MODE" != minimal ]; then
+        for candidate in "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" /opt/1Password/op-ssh-sign; do
+            [ -x "$candidate" ] && signer="$candidate" && break
+        done
+    fi
 
     # Ask for the username only for a missing name, or for a key when this machine can sign
     if { [ -z "$name" ] || { [ -z "$key" ] && [ -n "$signer" ]; }; } && [ -z "$github_user" ] && [ -t 0 ]; then
@@ -153,7 +196,7 @@ configure_git_identity() {
         echo "⚠️  Git identity not set. Re-run install.sh in a terminal, or set DOWNBEAT_GITHUB_USER and DOWNBEAT_GIT_EMAIL."
     fi
 
-    if [ -z "$key" ] && [ -n "$github_user" ] && key="$(github_signing_key "$github_user")"; then
+    if [ "$MODE" != minimal ] && [ -z "$key" ] && [ -n "$github_user" ] && key="$(github_signing_key "$github_user")"; then
         git config --file "$local_config" user.signingkey "key::$key"
     fi
 
@@ -169,7 +212,9 @@ configure_git_identity() {
     else
         git config --file "$local_config" commit.gpgsign false
         git config --file "$local_config" tag.gpgsign false
-        if [ -z "$signer" ]; then
+        if [ "$MODE" = minimal ]; then
+            echo "✓ Minimal mode: commit and tag signing turned off (in ~/.gitconfig.local)"
+        elif [ -z "$signer" ]; then
             echo "⚠️  1Password op-ssh-sign not found: signing turned off on this machine (in ~/.gitconfig.local)"
         elif [ -z "$key" ]; then
             echo "⚠️  No signing key: signing turned off on this machine (in ~/.gitconfig.local)"
@@ -209,25 +254,34 @@ change_default_shell() {
     chsh -s "$zsh_path" && echo "✓ Default shell changed to zsh (restart your terminal)"
 }
 
-echo "🥁 downbeat ($(uname -s))"
+echo "🥁 downbeat ($(uname -s), $MODE)"
 
-step "Linux prerequisites" install_linux_prereqs
-step "Homebrew" install_homebrew
-if ! command -v brew &> /dev/null; then
-    echo "❌ Homebrew is required for everything else. Fix the error above and re-run."
-    exit 1
+if [ "$MODE" = minimal ]; then
+    step "Packages (apt)" install_minimal_packages
+    step "Oh My Zsh" install_oh_my_zsh
+    step "Dotfiles" link_dotfiles
+    step "Git identity" configure_git_identity
+    step "Default shell" change_default_shell
+else
+    step "Linux prerequisites" install_linux_prereqs
+    step "Homebrew" install_homebrew
+    if ! command -v brew &> /dev/null; then
+        echo "❌ Homebrew is required for everything else. Fix the error above and re-run."
+        exit 1
+    fi
+    step "Trust tap formulae" trust_brewfile_taps
+    step "Brewfile packages" brew bundle --file="$REPO_DIR/Brewfile"
+    step "Oh My Zsh" install_oh_my_zsh
+    step "Dotfiles" link_dotfiles
+    step "Git identity and signing" configure_git_identity
+    step "Repo hooks (pre-commit)" install_repo_hooks
+    step "Node.js (nvm)" bash "$REPO_DIR/install/node.sh"
+    step "Default shell" change_default_shell
 fi
-step "Trust tap formulae" trust_brewfile_taps
-step "Brewfile packages" brew bundle --file="$REPO_DIR/Brewfile"
-step "Oh My Zsh" install_oh_my_zsh
-step "Dotfiles" link_dotfiles
-step "Git identity and signing" configure_git_identity
-step "Repo hooks (pre-commit)" install_repo_hooks
-step "Node.js (nvm)" bash "$REPO_DIR/install/node.sh"
-step "Default shell" change_default_shell
+step "Remember mode" save_mode
 
 echo
-if ! gh auth status &> /dev/null; then
+if [ "$MODE" = full ] && ! gh auth status &> /dev/null; then
     echo "🔑 GitHub CLI is not logged in. For pull requests and issues from the terminal, run:"
     echo "     gh auth login"
     echo
@@ -239,4 +293,6 @@ if [ ${#FAILURES[@]} -gt 0 ]; then
     exit 1
 fi
 echo "✅ Done. Put machine-specific settings in ~/.zshrc.local and ~/.zprofile.local."
-echo "   To see installed packages that aren't in the Brewfile: brew bundle cleanup --file=$REPO_DIR/Brewfile"
+if [ "$MODE" = full ]; then
+    echo "   To see installed packages that aren't in the Brewfile: brew bundle cleanup --file=$REPO_DIR/Brewfile"
+fi
