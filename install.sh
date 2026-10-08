@@ -211,7 +211,11 @@ configure_git_identity() {
     fi
     name="${name:-$github_user}"
     if [ -z "$email" ] && [ -t 0 ]; then
-        read -r -p "Git email (one verified on your GitHub account): " email
+        if [ "$MODE" = minimal ]; then
+            read -r -p "Git email: " email
+        else
+            read -r -p "Git email (one verified on your GitHub account): " email
+        fi
     fi
     [ -n "$name" ] && git config --file "$local_config" user.name "$name"
     [ -n "$email" ] && git config --file "$local_config" user.email "$email"
