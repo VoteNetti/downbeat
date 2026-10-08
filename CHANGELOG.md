@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-07
+
 ### Added
 - Minimal install mode for terminal-only Debian/Ubuntu machines (`install.sh --minimal` or `DOWNBEAT_MODE=minimal`, also through `bootstrap.sh`): zsh and fzf from apt, Oh My Zsh and the shell dotfiles; no Homebrew, GUI config, `downbeat` command, Node or commit signing. The mode is remembered in `~/.config/downbeat/mode`; `--full` switches back. `.zshrc` now only enables Oh My Zsh plugins for tools that are installed, and falls back to apt's fzf shell integration
 - `downbeat` command (`home/.local/bin/downbeat`): `update` (fast-forward pull, then `install.sh`), `status` (new release tag on GitHub, uncommitted changes under `home/`, and `brew bundle check`), and `edit` (open the clone in my editor, or print its path)
