@@ -80,7 +80,7 @@ jobs:
       - name: Check the result
         if: env.RUN_INSTALL == 'true'
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           test "$(cat ~/.config/downbeat/mode)" = "minimal"
           dpkg -s fzf zsh > /dev/null
           test "$(readlink ~/.zshrc)" = "$HOME/.downbeat/home/.zshrc"
