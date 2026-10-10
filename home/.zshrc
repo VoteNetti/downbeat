@@ -10,6 +10,12 @@ if [[ "$(locale charmap 2> /dev/null)" != UTF-8 ]] && locale -a 2> /dev/null | g
     export LANG=C.UTF-8 LC_ALL=C.UTF-8
 fi
 
+# SSH forwards the client's TERM (e.g. xterm-ghostty), which a minimal server has no terminfo for;
+# zsh then mangles the prompt ("?➜"). Fall back to a TERM every server knows.
+if [[ -n "$TERM" ]] && ! infocmp "$TERM" &> /dev/null; then
+    export TERM=xterm-256color
+fi
+
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
 export ZSH="$HOME/.oh-my-zsh"
