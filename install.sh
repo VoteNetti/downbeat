@@ -210,16 +210,15 @@ configure_git_identity() {
         github_user=""
     fi
     name="${name:-$github_user}"
-    if [ -z "$email" ] && [ -t 0 ]; then
-        if [ "$MODE" = minimal ]; then
-            read -r -p "Git email: " email
-        else
-            read -r -p "Git email (one verified on your GitHub account): " email
-        fi
+    # Minimal machines are servers: no email prompt (set DOWNBEAT_GIT_EMAIL or ~/.gitconfig.local)
+    if [ "$MODE" != minimal ] && [ -z "$email" ] && [ -t 0 ]; then
+        read -r -p "Git email (one verified on your GitHub account): " email
     fi
     [ -n "$name" ] && git config --file "$local_config" user.name "$name"
     [ -n "$email" ] && git config --file "$local_config" user.email "$email"
-    if [ -z "$name" ] || [ -z "$email" ]; then
+    if [ "$MODE" = minimal ]; then
+        [ -z "$email" ] && echo "ℹ️  No git email set; to commit from here, set DOWNBEAT_GIT_EMAIL and re-run, or edit ~/.gitconfig.local"
+    elif [ -z "$name" ] || [ -z "$email" ]; then
         echo "⚠️  Git identity not set. Re-run install.sh in a terminal, or set DOWNBEAT_GITHUB_USER and DOWNBEAT_GIT_EMAIL."
     fi
 
