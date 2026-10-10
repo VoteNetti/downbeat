@@ -45,5 +45,4 @@ if OS.mac?
   cask "visual-studio-code"
   cask "sublime-text"
   cask "drawio"
-  cask "ollama-app"
 end

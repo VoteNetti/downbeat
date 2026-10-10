@@ -19,12 +19,13 @@ keybind = super+ctrl+equal=equalize_splits
 
 # --- Theme ---
 theme = iTerm2 Solarized Dark
+window-colorspace = "display-p3"
 unfocused-split-opacity = 0.6
 unfocused-split-fill = #000000
 split-divider-color = #586e75
 
 # --- Fonts ---
-font-family = "Courier New"
+font-family = JetBrainsMono Nerd Font
 
 # --- Global ---
 keybind = global:cmd+alt+backquote=toggle_quick_terminal
