@@ -24,6 +24,12 @@ unset tool
 
 source "$ZSH/oh-my-zsh.sh"
 
+# sshd sets SSH_CONNECTION (or SSH_TTY) in remote shells; show who and where so a remote prompt
+# can't be mistaken for the local one
+if [[ -n "$SSH_CONNECTION$SSH_TTY" ]]; then
+    PROMPT="%{$fg_bold[yellow]%}ssh %n@%m%{$reset_color%} $PROMPT"
+fi
+
 if command -v fzf &> /dev/null; then
     if fzf --zsh &> /dev/null; then
         source <(fzf --zsh)
