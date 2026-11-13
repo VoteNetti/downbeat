@@ -4,6 +4,18 @@
 # Login shells get Homebrew from ~/.zprofile; cover non-login shells too (e.g. Linux terminals)
 [[ -z "$HOMEBREW_PREFIX" && -f "$HOME/.zprofile" ]] && source "$HOME/.zprofile"
 
+# SSH forwards the client's LANG, which a minimal server may not have generated; without a UTF-8
+# locale the prompt's arrow renders as "?". C.UTF-8 ships with Ubuntu and Debian.
+if [[ "$(locale charmap 2> /dev/null)" != UTF-8 ]] && locale -a 2> /dev/null | grep -qix 'C.utf-\?8'; then
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+fi
+
+# SSH forwards the client's TERM (e.g. xterm-ghostty), which a minimal server has no terminfo for;
+# zsh then mangles the prompt ("?➜"). Fall back to a TERM every server knows.
+if [[ -n "$TERM" ]] && ! infocmp "$TERM" &> /dev/null; then
+    export TERM=xterm-256color
+fi
+
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
 export ZSH="$HOME/.oh-my-zsh"
@@ -33,10 +45,17 @@ fi
 if command -v fzf &> /dev/null; then
     if fzf --zsh &> /dev/null; then
         source <(fzf --zsh)
-    elif [[ -d /usr/share/doc/fzf/examples ]]; then
-        # apt's fzf can predate `fzf --zsh`
-        source /usr/share/doc/fzf/examples/key-bindings.zsh
-        source /usr/share/doc/fzf/examples/completion.zsh 2> /dev/null
+    else
+        # apt's fzf can predate `fzf --zsh`; install.sh --minimal extracts its zsh files when
+        # minimized Ubuntu has stripped /usr/share/doc
+        for fzf_dir in /usr/share/doc/fzf/examples "$HOME/.local/share/downbeat/fzf"; do
+            if [[ -f $fzf_dir/key-bindings.zsh ]]; then
+                source "$fzf_dir/key-bindings.zsh"
+                [[ -f $fzf_dir/completion.zsh ]] && source "$fzf_dir/completion.zsh"
+                break
+            fi
+        done
+        unset fzf_dir
     fi
 fi
 

@@ -50,7 +50,25 @@ install_minimal_packages() {
         echo "Minimal mode needs a Debian/Ubuntu system (apt)."
         return 1
     fi
-    sudo apt-get update && sudo apt-get install -y curl git zsh fzf
+    sudo apt-get update && sudo apt-get install -y curl git zsh fzf && install_fzf_shell_files
+}
+
+# apt's fzf can predate `fzf --zsh`, and minimized Ubuntu strips /usr/share/doc, where the
+# package keeps its zsh files. Pull them from the package itself so .zshrc can source them.
+install_fzf_shell_files() {
+    local dir="$HOME/.local/share/downbeat/fzf" tmp
+    fzf --zsh &> /dev/null && return 0
+    [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && return 0
+    [ -f "$dir/key-bindings.zsh" ] && return 0
+    tmp="$(mktemp -d)" || return 1
+    mkdir -p "$dir"
+    (cd "$tmp" && apt-get download fzf \
+        && dpkg-deb --fsys-tarfile fzf_*.deb \
+        | tar -x -C "$dir" --strip-components=6 \
+            ./usr/share/doc/fzf/examples/key-bindings.zsh ./usr/share/doc/fzf/examples/completion.zsh)
+    local rc=$?
+    rm -rf "$tmp"
+    return "$rc"
 }
 
 save_mode() {
@@ -174,8 +192,13 @@ configure_git_identity() {
         done
     fi
 
+    # Minimal machines have no key lookup, so there's no GitHub username to ask for: ask for the name
+    if [ "$MODE" = minimal ] && [ -z "$name" ] && [ -z "$github_user" ] && [ -t 0 ]; then
+        read -r -p "Git name: " name
+    fi
+
     # Ask for the username only for a missing name, or for a key when this machine can sign
-    if { [ -z "$name" ] || { [ -z "$key" ] && [ -n "$signer" ]; }; } && [ -z "$github_user" ] && [ -t 0 ]; then
+    if [ "$MODE" != minimal ] && { [ -z "$name" ] || { [ -z "$key" ] && [ -n "$signer" ]; }; } && [ -z "$github_user" ] && [ -t 0 ]; then
         while :; do
             read -r -p "GitHub username: " github_user
             [[ "$github_user" != *@* ]] && break
@@ -187,12 +210,15 @@ configure_git_identity() {
         github_user=""
     fi
     name="${name:-$github_user}"
-    if [ -z "$email" ] && [ -t 0 ]; then
+    # Minimal machines are servers: no email prompt (set DOWNBEAT_GIT_EMAIL or ~/.gitconfig.local)
+    if [ "$MODE" != minimal ] && [ -z "$email" ] && [ -t 0 ]; then
         read -r -p "Git email (one verified on your GitHub account): " email
     fi
     [ -n "$name" ] && git config --file "$local_config" user.name "$name"
     [ -n "$email" ] && git config --file "$local_config" user.email "$email"
-    if [ -z "$name" ] || [ -z "$email" ]; then
+    if [ "$MODE" = minimal ]; then
+        [ -z "$email" ] && echo "ℹ️  No git email set; to commit from here, set DOWNBEAT_GIT_EMAIL and re-run, or edit ~/.gitconfig.local"
+    elif [ -z "$name" ] || [ -z "$email" ]; then
         echo "⚠️  Git identity not set. Re-run install.sh in a terminal, or set DOWNBEAT_GITHUB_USER and DOWNBEAT_GIT_EMAIL."
     fi
 
