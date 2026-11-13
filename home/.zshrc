@@ -40,6 +40,16 @@ if command -v fzf &> /dev/null; then
     fi
 fi
 
+# Live ripgrep over the current directory in fzf; Enter opens the match in nvim at its line
+frg() {
+    local sel file line
+    sel=$(fzf --disabled --ansi --delimiter ':' \
+        --bind "change:reload:rg -n --color=always -i -e {q} . || true" \
+        --preview 'rg -i --color=always -C 3 -e {q} {1}') || return
+    IFS=: read -r file line _ <<< "$sel"
+    [[ -n "$file" ]] && nvim "+${line:-1}" -- "$file"
+}
+
 alias wmip="curl checkip.amazonaws.com"
 alias dv="dirs -v"
 
