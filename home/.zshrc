@@ -36,6 +36,12 @@ unset tool
 
 source "$ZSH/oh-my-zsh.sh"
 
+# sshd sets SSH_CONNECTION (or SSH_TTY) in remote shells; show who and where so a remote prompt
+# can't be mistaken for the local one
+if [[ -n "$SSH_CONNECTION$SSH_TTY" ]]; then
+    PROMPT="%{$fg_bold[yellow]%}ssh %n@%m%{$reset_color%} $PROMPT"
+fi
+
 if command -v fzf &> /dev/null; then
     if fzf --zsh &> /dev/null; then
         source <(fzf --zsh)
@@ -52,6 +58,16 @@ if command -v fzf &> /dev/null; then
         unset fzf_dir
     fi
 fi
+
+# Live ripgrep over the current directory in fzf; Enter opens the match in nvim at its line
+frg() {
+    local sel file line
+    sel=$(fzf --disabled --ansi --delimiter ':' \
+        --bind "change:reload:rg -n --color=always -i -e {q} . || true" \
+        --preview 'rg -i --color=always -C 3 -e {q} {1}') || return
+    IFS=: read -r file line _ <<< "$sel"
+    [[ -n "$file" ]] && nvim "+${line:-1}" -- "$file"
+}
 
 alias wmip="curl checkip.amazonaws.com"
 alias dv="dirs -v"

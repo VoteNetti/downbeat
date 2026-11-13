@@ -16,6 +16,7 @@ brew "gh"
 brew "jq"
 brew "wget"
 brew "fzf"
+brew "ripgrep"
 brew "neovim"
 brew "uv"
 brew "nmap"
@@ -45,5 +46,4 @@ if OS.mac?
   cask "visual-studio-code"
   cask "sublime-text"
   cask "drawio"
-  cask "ollama-app"
 end

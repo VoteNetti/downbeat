@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-13
+
+### Added
+- `frg` shell function: live ripgrep search in fzf with a preview, opening the selected match in nvim at its line. `ripgrep` is in the Brewfile
+- Remote shells show `ssh user@host` at the start of the prompt
+
+### Changed
+- Ghostty uses JetBrainsMono Nerd Font and the display-p3 colorspace; `minimum-contrast` is commented out
+- Dropped the `ollama-app` cask
+
 ## [3.2.1] - 2026-10-10
 
 ### Fixed
