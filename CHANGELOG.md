@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- `ls` and friends use eza through Oh My Zsh's `eza` plugin, with icons, directories first and a header row (`ll` for the long view; `l` still works). `eza` and the JetBrainsMono Nerd Font cask are in the Brewfile
+- `ls` and friends use eza through Oh My Zsh's `eza` plugin, with icons, directories first, a header row, a git status column and color-scaled sizes and dates (`ll` for the long view; `l` still works). `eza` and the JetBrainsMono Nerd Font cask are in the Brewfile
 
 ## [3.3.0] - 2026-11-13
 

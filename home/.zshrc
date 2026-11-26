@@ -29,6 +29,8 @@ zstyle ':omz:plugins:nvm' lazy-cmd cdk
 zstyle ':omz:plugins:eza' icons yes
 zstyle ':omz:plugins:eza' dirs-first yes
 zstyle ':omz:plugins:eza' header yes
+zstyle ':omz:plugins:eza' git-status yes
+zstyle ':omz:plugins:eza' color-scale all
 
 # Plugins for tools that aren't installed (minimal machines) are left out
 plugins=(git netti-git history zsh-interactive-cd)
