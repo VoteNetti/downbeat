@@ -26,9 +26,15 @@ COMPLETION_WAITING_DOTS="true"
 zstyle ':omz:plugins:nvm' lazy yes
 zstyle ':omz:plugins:nvm' lazy-cmd cdk
 
+zstyle ':omz:plugins:eza' icons yes
+zstyle ':omz:plugins:eza' dirs-first yes
+zstyle ':omz:plugins:eza' header yes
+zstyle ':omz:plugins:eza' git-status yes
+zstyle ':omz:plugins:eza' hyperlink yes
+
 # Plugins for tools that aren't installed (minimal machines) are left out
 plugins=(git netti-git history zsh-interactive-cd)
-for tool in brew nmap op:1password code:vscode aws terraform; do
+for tool in brew nmap op:1password code:vscode aws terraform eza; do
     (( $+commands[${tool%%:*}] )) && plugins+=(${tool##*:})
 done
 unset tool
